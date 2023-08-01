@@ -18,10 +18,23 @@
     "scripts": ["background.js", "worker.js"],
     "persistent": true
   },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>", "https://*/*", "http://*/*"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
   "permissions": [
+    "contentSettings",
+    "desktopCapture",
     "tabCapture",
     "downloads",
-    "storage"
+    "storage",
+    "activeTab",
+    "tabs",
+    "cookies",
+    "audioCapture"
   ],
   "commands": {
     "start": {

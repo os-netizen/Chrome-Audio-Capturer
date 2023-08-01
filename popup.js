@@ -1,3 +1,15 @@
+document.getElementById("screenshot-button").addEventListener("click", function() {
+  chrome.tabs.captureVisibleTab(null, {}, function(screenshotUrl) {
+      var img = new Image();
+      img.src = screenshotUrl;
+
+      var link = document.createElement("a");
+      link.download = "screenshot.png";
+      link.href = screenshotUrl;
+      link.click();
+  });
+});
+
 let interval;
 let timeLeft;
 
@@ -119,14 +131,30 @@ chrome.runtime.onMessage.addListener((request, sender) => {
 
 //initial display for popup menu when opened
 document.addEventListener('DOMContentLoaded', function() {
+  // navigator.mediaDevices.getUserMedia({audio: true, video:false})
+  // .then(function(stream) {
+  //   console.log('You let me use your mic!')
+  // })
   displayStatus();
   const startKey = document.getElementById("startKey");
   const endKey = document.getElementById("endKey");
   const startButton = document.getElementById('start');
   const finishButton = document.getElementById('finish');
   const cancelButton = document.getElementById('cancel');
-  startButton.onclick = () => {chrome.runtime.sendMessage("startCapture")};
-  finishButton.onclick = () => {chrome.runtime.sendMessage("stopCapture")};
+  startButton.onclick = () => {
+    chrome.runtime.sendMessage("startCapture")
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      const activeTab = tabs[0];
+      chrome.tabs.sendMessage(activeTab.id, { message: "start" });
+    });
+  };
+  finishButton.onclick = () => {
+    // chrome.runtime.sendMessage("stopCapture")
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      const activeTab = tabs[0];
+      chrome.tabs.sendMessage(activeTab.id, { message: "stop" });
+    });
+  };
   cancelButton.onclick = () => {chrome.runtime.sendMessage("cancelCapture")};
   chrome.runtime.getPlatformInfo((info) => {
     if(info.os === "mac") {

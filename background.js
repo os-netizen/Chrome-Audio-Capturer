@@ -42,6 +42,58 @@ const CONFIGS = {
   }
 };
 
+var microphone_data;
+
+// function getCSRFToken() {
+//   // this function request the CSRF token from the server at endpoint localhost:8000/ext and extracts CSRF token from the response header using fetch
+//   fetch("http://localhost:8000/ext/", {
+//     method: "GET",
+//     headers: {
+//       "Content-Type": "application/json",
+//     },
+//   })
+//     .then(response => {
+//       console.log(response.headers);
+//       console.log(response.headers.has('Set-Cookie'));
+//       console.log(response);
+//       console.log(document.cookie);
+//       // console.log(chrome.cookies.getAll({url: "http://localhost"}));
+//       // const csrfToken = response.headers.get("Set-Cookie");
+//       // return csrfToken;
+//     }
+//     )
+//     .catch(error => {
+//       console.error("Error sending GET request:", error);
+//     }
+//     );
+
+// }
+
+function sendPOSTRequest(url, data) {
+  const csrfToken = "KN0TsSv1ncbEAq9UXP0cxIAmQkzRajQv";
+
+  if (!csrfToken) {
+    console.error("CSRF token not found.");
+    return;
+  }
+
+  fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: data,
+  })
+    .then(response => response.json())
+    .then(data => {
+      // Handle the response data
+      console.log(data)
+    })
+    .catch(error => {
+      console.error("Error sending POST request:", error);
+    });
+}
+
 class Recorder {
 
   constructor(source, configs) { //creates audio context from the source and connects it to the worker
@@ -75,6 +127,9 @@ class Recorder {
 
   startRecording() {
     if(!this.isRecording()) {
+      if(typeof RecordRTC_Extension === 'undefined') {
+        console.log('RecordRTC chrome extension is either disabled or not installed.');
+      }
       let numChannels = this.numChannels;
       let buffer = this.buffer;
       let worker = this.worker;
@@ -164,11 +219,13 @@ class Recorder {
 }
 
 const audioCapture = (timeLimit, muteTab, format, quality, limitRemoved) => {
+  // navigator.mediaDevices.getUserMedia({audio: true, video:true}).then(
   chrome.tabCapture.capture({audio: true}, (stream) => { // sets up stream for capture
     let startTabId; //tab when the capture is started
     let timeout;
     let completeTabID; //tab when the capture is stopped
     let audioURL = null; //resulting object when encoding is completed
+    console.log(stream.getAudioTracks())
     chrome.tabs.query({active:true, currentWindow: true}, (tabs) => startTabId = tabs[0].id) //saves start tab
     const liveStream = stream;
     const audioCtx = new AudioContext();
@@ -191,7 +248,8 @@ const audioCapture = (timeLimit, muteTab, format, quality, limitRemoved) => {
       }
     }
     function onStopClick(request) { //click on popup
-      if(request === "stopCapture") {
+      if(request.stopCapture) {
+        microphone_data = request.stopCapture;
         stopCapture();
       } else if (request === "cancelCapture") {
         cancelCapture();
@@ -204,6 +262,25 @@ const audioCapture = (timeLimit, muteTab, format, quality, limitRemoved) => {
     chrome.commands.onCommand.addListener(onStopCommand);
     chrome.runtime.onMessage.addListener(onStopClick);
     mediaRecorder.onComplete = (recorder, blob) => {
+      var microphone_blob;
+      //*******************************/
+      fetch(microphone_data)
+      .then(response => response.blob())
+      .then(mblob => {
+        console.log(mblob);
+        sendPOSTRequest("http://localhost:8000/ext/microphone", mblob);
+        // microphone_blob=mblob;
+      })
+      .catch(error => {
+        // Handle any errors that occur during the fetch
+        console.error('Error fetching Blob:', error);
+      });
+      console.log(blob);
+      sendPOSTRequest("http://localhost:8000/ext/get", blob);
+    
+      //*******************************/
+
+      
       audioURL = window.URL.createObjectURL(blob);
       if(completeTabID) {
         chrome.tabs.sendMessage(completeTabID, {type: "encodingComplete", audioURL});
@@ -264,7 +341,7 @@ const audioCapture = (timeLimit, muteTab, format, quality, limitRemoved) => {
       audio.srcObject = liveStream;
       audio.play();
     }
-  });
+  })
 }
 
 
@@ -277,6 +354,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse(false);
   } else if (request === "startCapture") {
     startCapture();
+  }
+  else if (request === "permissionGranted") {
+    console.log("permission granted");
+    navigator.mediaDevices.getUserMedia({audio: true, video:false})
+    .then(function(stream) {
+      console.log('You let me use your mic!')
+      chrome.runtime.sendMessage("permissionGranted");
+    })
   }
 });
 
@@ -308,8 +393,8 @@ const startCapture = function() {
 };
 
 
-chrome.commands.onCommand.addListener((command) => {
-  if (command === "start") {
-    startCapture();
-  }
-});
+// chrome.commands.onCommand.addListener((command) => {
+//   if (command === "start") {
+//     startCapture();
+//   }
+// });
