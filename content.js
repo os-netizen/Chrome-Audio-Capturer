@@ -63,7 +63,7 @@ function Recorder(stream){
 
 startRecording = () => {
     console.log("Recording started");
-    navigator.mediaDevices.getUserMedia({ audio: true, systemaudio: "include" })
+    navigator.mediaDevices.getUserMedia({ audio: true, systemaudio: "include", echoCancellation: true, noiseSuppression: true })
     .then(function (stream) {
         mediaRecorder = Recorder(stream);
     })
