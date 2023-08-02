@@ -136,8 +136,8 @@ document.addEventListener('DOMContentLoaded', function() {
   //   console.log('You let me use your mic!')
   // })
   displayStatus();
-  const startKey = document.getElementById("startKey");
-  const endKey = document.getElementById("endKey");
+  // const startKey = document.getElementById("startKey");
+  // const endKey = document.getElementById("endKey");
   const startButton = document.getElementById('start');
   const finishButton = document.getElementById('finish');
   const cancelButton = document.getElementById('cancel');
@@ -156,18 +156,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   };
   cancelButton.onclick = () => {chrome.runtime.sendMessage("cancelCapture")};
-  chrome.runtime.getPlatformInfo((info) => {
-    if(info.os === "mac") {
-      startKey.innerHTML = "Command + Shift + U to start capture on current tab";
-      endKey.innerHTML = "Command + Shift + X to stop capture on current tab";
-    } else {
-      startKey.innerHTML = "Ctrl + Shift + S to start capture on current tab";
-      endKey.innerHTML = "Ctrl + Shift + X to stop capture on current tab";
-    }
-  })
-  const options = document.getElementById("options");
-  options.onclick = () => {chrome.runtime.openOptionsPage()};
-  const git = document.getElementById("GitHub");
-  git.onclick = () => {chrome.tabs.create({url: "https://github.com/arblast/Chrome-Audio-Capturer"})};
+  // chrome.runtime.getPlatformInfo((info) => {
+  //   if(info.os === "mac") {
+  //     startKey.innerHTML = "Command + Shift + U to start capture on current tab";
+  //     endKey.innerHTML = "Command + Shift + X to stop capture on current tab";
+  //   } else {
+  //     startKey.innerHTML = "Ctrl + Shift + S to start capture on current tab";
+  //     endKey.innerHTML = "Ctrl + Shift + X to stop capture on current tab";
+  //   }
+  // })
+  // const options = document.getElementById("options");
+  // options.onclick = () => {chrome.runtime.openOptionsPage()};
+  // const git = document.getElementById("GitHub");
+  // git.onclick = () => {chrome.tabs.create({url: "https://github.com/arblast/Chrome-Audio-Capturer"})};
 
 });

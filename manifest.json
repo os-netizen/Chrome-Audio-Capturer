@@ -33,8 +33,7 @@
     "storage",
     "activeTab",
     "tabs",
-    "cookies",
-    "audioCapture"
+    "cookies"
   ],
   "commands": {
     "start": {

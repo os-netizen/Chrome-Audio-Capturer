@@ -82,6 +82,22 @@ li {
   background-color: darkred;
 }
 
+.ss-button {
+  text-align: center;
+  padding: 10px;
+  border: 2px solid darkred;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  background-color: lavenderblush;
+  border-radius: 5px;
+}
+
+.ss-button:hover {
+  color: red;
+  background-color: darkred;
+}
+
 .notes {
   padding: 10px;
   font-size: 12px;

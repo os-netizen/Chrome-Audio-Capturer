@@ -1,34 +1,53 @@
 console.log("Hello from your Chrome extension!")
 var microphone_data;
+
 // Listen for messages from the popup.js
 
-// function sendPOSTRequestForMicrophone(url, data) {
-  
-//     fetch(url, {
-//       method: "POST",
-//       body: data,
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//     })
-//       .then(response => response.json())
-//       .then(data => {
-//         // Handle the response data
-//         console.log(data)
-//       })
-//       .catch(error => {
-//         console.error("Error sending POST request:", error);
-//       });
-//   }
+// function encodeWAV(samples) {
+//     var buffer = new ArrayBuffer(44 + samples.length * 2);
+//     var view = new DataView(buffer);
+
+//     /* RIFF identifier */
+//     writeString(view, 0, 'RIFF');
+//     /* RIFF chunk length */
+//     view.setUint32(4, 36 + samples.length * 2, true);
+//     /* RIFF type */
+//     writeString(view, 8, 'WAVE');
+//     /* format chunk identifier */
+//     writeString(view, 12, 'fmt ');
+//     /* format chunk length */
+//     view.setUint32(16, 16, true);
+//     /* sample format (raw) */
+//     view.setUint16(20, 1, true);
+//     /* channel count */
+//     view.setUint16(22, numChannels, true);
+//     /* sample rate */
+//     view.setUint32(24, sampleRate, true);
+//     /* byte rate (sample rate * block align) */
+//     view.setUint32(28, sampleRate * 4, true);
+//     /* block align (channel count * bytes per sample) */
+//     view.setUint16(32, numChannels * 2, true);
+//     /* bits per sample */
+//     view.setUint16(34, 16, true);
+//     /* data chunk identifier */
+//     writeString(view, 36, 'data');
+//     /* data chunk length */
+//     view.setUint32(40, samples.length * 2, true);
+
+//     floatTo16BitPCM(view, 44, samples);
+
+//     return view;
+// }
 
 
 function saveFile(recordedChunks) {
 	const blob = new Blob(recordedChunks, {
-		type: "audio/wav",
+		type: "audio/webm",
 	});
     microphone_data=blob;
     console.log(blob);
     audioURL = window.URL.createObjectURL(blob);
+    console.log(recordedChunks);
     chrome.runtime.sendMessage({stopCapture : audioURL});
     // sendPOSTRequestForMicrophone("http://localhost:8000/ext/microphone", blob);
 
@@ -46,7 +65,7 @@ function saveFile(recordedChunks) {
 function Recorder(stream){
 
     var recordedChunks = [];
-    const mediaRecorder = new MediaRecorder(stream);
+    const mediaRecorder = new MediaRecorder(stream, {mimeType: "audio/webm"});
   
     mediaRecorder.ondataavailable = function (e) {
           if (e.data.size > 0) {
